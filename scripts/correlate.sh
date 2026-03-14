@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOG="${1:-/home/housestark/soc/logs/alert.log}"
+# 'username' refers to your own username/profile name. Adjust it accordngly to make it work on your own system.
+LOG="${1:-/home/username/soc/logs/alert.log}"
 WINDOW_SEC="${WINDOW_SEC:-60}"
 COOLDOWN_SEC="${COOLDOWN_SEC:-60}"
 ALERT_TO="${ALERT_TO:-}"
@@ -17,7 +18,7 @@ declare -A last_corr_epoch
 last_dns_epoch=0
 last_dns_info=""
 
-# Global mail cooldown (spam kesmek için)
+# Global mail cooldown to cut down spam
 last_global_corr_epoch=0
 
 to_epoch() {
@@ -28,12 +29,12 @@ to_epoch() {
 emit_corr() {
   local src="$1" now_epoch="$2" ts="$3"
 
-  # src bazlı cooldown
+  # src based cooldown
   local last="${last_corr_epoch[$src]:-0}"
   if (( now_epoch - last < COOLDOWN_SEC )); then return; fi
   last_corr_epoch["$src"]="$now_epoch"
 
-  # global cooldown (mail+log spam’i keser)
+  # global cooldown
   if (( now_epoch - last_global_corr_epoch < COOLDOWN_SEC )); then return; fi
   last_global_corr_epoch="$now_epoch"
 
@@ -51,7 +52,7 @@ while read -r line; do
   epoch="$(to_epoch "$ts")"
   (( epoch > 0 )) || continue
 
-  # PORT EVENT: SADECE CRITICAL portscan_live
+  # PORT EVENT: only CRITICAL portscan_live
   if [[ "$line" == *"[CRITICAL]"* && "$line" == *"portscan_live "* ]]; then
     src="$(echo "$line" | sed -nE 's/.*src=([^ ]+).*/\1/p')"
     dst="$(echo "$line" | sed -nE 's/.*dst=([^ ]+).*/\1/p')"
@@ -68,7 +69,7 @@ while read -r line; do
     fi
   fi
 
-  # DNS EVENT: SADECE CRITICAL dns_live
+  # DNS EVENT: only CRITICAL dns_live
   if [[ "$line" == *"[CRITICAL]"* && "$line" == *"dns_live "* ]]; then
     last_dns_epoch="$epoch"
     rate="$(echo "$line" | sed -nE 's/.*rate_per_min=([^ ]+).*/\1/p')"
