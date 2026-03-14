@@ -24,7 +24,7 @@ mkdir -p ~/soc/logs
 
 OUT="$(nmap -sT -T4 --open -sV --version-light -oG - "$TARGET" 2>/dev/null || true)"
 
-# Ports satırı yoksa (hiç open port yok / host down / vs.)
+# If the port line is not there
 if ! echo "$OUT" | grep -q 'Ports:'; then
   msg="portscan target=$TARGET result=no_open_ports_or_no_response"
   echo "$(TS) [INFO] $msg" >> ~/soc/logs/alert.log
@@ -32,7 +32,7 @@ if ! echo "$OUT" | grep -q 'Ports:'; then
   exit 0
 fi
 
-# Örnek satır:
+# Ex. line:
 # Host: 127.0.0.1 (localhost)  Ports: 22/open/tcp//ssh///, 631/open/tcp//ipp///
 echo "$OUT" | grep 'Ports:' | while IFS= read -r line; do
   host="$(echo "$line" | sed -nE 's/^Host: ([^ ]+).*/\1/p')"
