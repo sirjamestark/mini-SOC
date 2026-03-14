@@ -1,0 +1,7 @@
+logs/
+pcap/
+reports/
+*.pcap
+*.log
+*.tmp
+*.bak
