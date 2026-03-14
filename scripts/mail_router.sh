@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-LOG="${1:-/home/housestark/soc/logs/alert.log}"
+LOG="${1:-/home/username/soc/logs/alert.log}"
 
-SUPPRESS_SEC="${SUPPRESS_SEC:-1}"   # correlation sonrası (src bazlı) portscan susturma
-DEDUP_SEC="${DEDUP_SEC:-5}"         # aynı satırı tekrar görürse sustur
+SUPPRESS_SEC="${SUPPRESS_SEC:-1}"   # Supress of port scan after correlation
+DEDUP_SEC="${DEDUP_SEC:-5}"         # Suppress if the same line comes up again
 DEBUG="${DEBUG:-0}"
 
-# tek instance
 exec 9>/run/soc-mailrouter.lock
 flock -n 9 || exit 0
 
@@ -47,7 +46,6 @@ discord_send() {
   local msg payload code
   msg="$(printf '%s %s\n%s' "$prefix" "$title" "$line")"
 
-  # JSON'ı doğru encode et (newline dahil)
   payload="$(python3 - <<PY
 import json
 msg = """$msg"""
@@ -68,7 +66,7 @@ PY
   fi
 }
 
-# src bazlı suppression
+# src based suppression
 declare -A suppress_until
 
 dedupe_ok() {
@@ -98,7 +96,7 @@ tail -n 0 -F "$LOG" | while read -r line; do
   [[ -n "$sev" ]] || continue
   prefix="$(sev_prefix "$sev")"
 
-  # CORRELATION (genelde CRITICAL)
+  # CORRELATION (often CRITICAL)
   if [[ "$line" == *" correlation "* ]]; then
     src="$(echo "$line" | sed -nE 's/.*src=([^ ]+).*/\1/p')"
     [[ -n "$src" ]] || src="unknown"
