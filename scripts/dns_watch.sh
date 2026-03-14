@@ -3,20 +3,20 @@ set -euo pipefail
 
 IFACE="${1:-eth0}"
 THRESH="${2:-250}"
-LOG="/home/housestark/soc/logs/alert.log"
+LOG="/home/username/soc/logs/alert.log"
 
-# her 10 sn ölç
+# Measure every 10 sec
 WIN=10
 
 while true; do
-  # 10 sn DNS say
+  # count DNS every 10 sec
   cnt="$(timeout "${WIN}" tcpdump -n -i "$IFACE" "(udp port 53 or tcp port 53)" 2>/dev/null | wc -l || true)"
   cnt="${cnt:-0}"
 
-  # dakikaya normalize (10 sn * 6)
+  # MAke it a minute
   rate=$(( cnt * (60 / WIN) ))
 
-  # severity: her zaman en az INFO
+  # severity: always INFO if no other
   sev="INFO"
   if   (( rate >= THRESH * 4 )); then sev="CRITICAL"
   elif (( rate >= THRESH * 2 )); then sev="HIGH"
