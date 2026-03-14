@@ -4,7 +4,7 @@ set -euo pipefail
 LOG="/home/username/soc/logs/alert.log"
 
 # Create the file if not already exist
-sudo install -o housestark -g adm -m 0664 /dev/null "$LOG" 2>/dev/null || true
+sudo install -o username -g adm -m 0664 /dev/null "$LOG" 2>/dev/null || true
 
 # Live monitor and some fancy colors
 sudo tail -n 0 --follow=name --retry "$LOG" | stdbuf -oL awk '
